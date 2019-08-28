@@ -1,0 +1,44 @@
+import pandas as pd
+import numpy as np
+import re
+
+OA_data = pd.read_csv('WELLCOME_APCspend2013_forThinkful.csv', encoding='latin1')
+#encoding latin1 changes the encoding from utf-8, which doesn't have the pound sterling
+#character to latin1 which does
+
+#columns are PMID/PMCID,Publisher,Journal title,
+#Article title,COST (£) charged to Wellcome (inc VAT when charged)
+
+#stripping out blank space
+OA_data['PMID/PMCID'].str.strip()
+OA_data['Publisher'].str.strip()
+OA_data['Journal title'].str.strip()
+OA_data['Article title'].str.strip()
+OA_data['COST (£) charged to Wellcome (inc VAT when charged)'].str.strip()
+
+#getting rid of null values
+OA_data = OA_data.dropna(subset=['PMID/PMCID'])
+OA_data = OA_data.dropna(subset=['Publisher'])
+OA_data = OA_data.dropna(subset=['Journal title'])
+OA_data = OA_data.dropna(subset=['Article title'])
+OA_data = OA_data.dropna(subset=['COST (£) charged to Wellcome (inc VAT when charged)'])
+
+#cleaning PMID/PMCID data by removing all non digit characters
+OA_data['PMID/PMCID'].apply(lambda x: ''.join(list(filter(str.isdigit, str(x)))))
+OA_data['COST (£) charged to Wellcome (inc VAT when charged)'].apply(lambda x: ''.join(list(filter(str.isdigit, str(x)))))
+#cleaning list by removing everything but the first letter of each word to standardize
+#the publishers to just the first letters
+OA_data['Publisher'] = OA_data['Publisher'].apply(lambda x: re.findall('[A-Z]', x))
+
+#Finding the max value for Publisher using value_counts()
+print(OA_data['Publisher'].value_counts())
+
+#Finding the mean of each value plot
+
+#HAVING TROUBLE IN THIS SECTION
+print(OA_data['COST (£) charged to Wellcome (inc VAT when charged)'])
+OA_data['COST (£) charged to Wellcome (inc VAT when charged)'] = OA_data['COST (£) charged to Wellcome (inc VAT when charged)'].str.split('£', expand=True)
+
+OA_data['COST (£) charged to Wellcome (inc VAT when charged)'] = OA_data['COST (£) charged to Wellcome (inc VAT when charged)'].astype(float)
+
+#print(OA_data['COST (£) charged to Wellcome (inc VAT when charged)'][2])
