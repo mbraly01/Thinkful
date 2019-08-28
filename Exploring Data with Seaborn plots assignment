@@ -1,0 +1,35 @@
+
+import numpy as np
+import pandas as pd
+import matplotlib.pyplot as plt
+import seaborn as sns
+
+# Loading an example dataset provided by the seaborn package.
+car_crashes = sns.load_dataset("car_crashes")
+print(car_crashes.head(n=4))
+
+
+
+g = sns.lmplot(y='alcohol',# Variable 1.
+               x='speeding', # Variable 2.
+               data=car_crashes, # Data
+               fit_reg=False, # If set to true, plots a regression line.
+               scatter_kws={'alpha':0.4}) # Set points to semi-transparent to see overlapping points.
+g.set_ylabels("alcohol")
+g.set_xlabels("speeding")
+plt.title('Speeding and Alchohol Consumption')
+plt.show()
+
+g = sns.lmplot(y='alcohol', 
+               x='speeding',
+               data=car_crashes, # Data.
+               fit_reg=True, # The regression line also includes a 95% confidence envelope.
+               scatter_kws={'alpha':0.4})
+g.set_ylabels("alcohol consumption")
+g.set_xlabels("speeding")
+plt.title('Scatterplot with regression line: Speeding and Alcohol Consumption')
+plt.show()
+
+sns.set(style="white")
+
+#trouble getting the points to overlay on top of eachother in the same graph
