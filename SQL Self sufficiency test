@@ -1,5 +1,6 @@
 -- 1
-DESC naep;
+SELECT *
+FROM naep;
 -- 2
 SELECT * 
 FROM naep
@@ -26,16 +27,14 @@ ORDER BY state ASC;
 -- 5
 SELECT id AS bottom_10
 FROM naep
+WHERE year = 2000
 ORDER BY avg_math_4_score ASC
 LIMIT 10;
 -- 6
-SELECT state,
-	ROUND(AVG(avg_math_4_score), 2) AS avg_score
+SELECT ROUND(AVG(avg_math_4_score), 2) AS avg_score
 FROM naep
-WHERE year >= 2000
-GROUP BY state
-ORDER BY state ASC;
--- 7
+WHERE year >= 2000;
+-- 7 - Trouble here
 SELECT state AS below_average_statesy2000
 FROM naep
 WHERE year = 2000
@@ -51,14 +50,13 @@ WHERE avg_math_4_score IS NULL
 -- 9
 SELECT naep.id, 
 	ROUND(naep.avg_math_4_score, 2),
-	naep.state,
-	finance.id, 
+	naep.state, 
 	finance.total_expenditure
 FROM naep LEFT OUTER JOIN finance
 ON naep.id = finance.id
-WHERE naep.avg_math_4_score IS NOT NULL;
+WHERE naep.avg_math_4_score IS NOT NULL
+	AND naep.year = 2000;
 
 
 
 
-6
