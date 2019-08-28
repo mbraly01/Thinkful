@@ -1,0 +1,57 @@
+-- 1 --
+--SELECT DISTINCT country
+--FROM ksprojects;
+-- 2 --
+--SELECT DISTINCT COUNT (main_category) AS count_main, (category) AS count_cat
+-- ksprojects
+--ORDER BY count_main, count_cat;
+--Ans: 65418 for both
+-- 3 --
+--SELECT DISTINCT main_category, category
+--FROM ksprojects
+--ORDER BY main_category ASC;
+-- 4 --
+--SELECT DISTINCT main_category, COUNT(category)
+--FROM ksprojects
+--GROUP BY main_category
+--ORDER BY main_category ASC;
+-- 5 --
+--SELECT DISTINCT main_category, ROUND(AVG(backers), 0) AS round_backers
+--FROM ksprojects
+--GROUP BY main_category
+--ORDER BY round_backers DESC;
+-- 6 --
+--SELECT DISTINCT category, COUNT(state) AS successful_count, AVG(pledged - goal)
+--FROM ksprojects
+--WHERE state LIKE 'successful'
+--GROUP BY category;
+-- 7 --
+--SELECT DISTINCT main_category, MIN(backers) AS zero_backers, MAX(goal) AS high_goal
+--FROM ksprojects
+--GROUP BY main_category;
+-- 8 --
+--SELECT DISTINCT category, AVG(usd_pledged/NULLIF(backers, 0))
+--FROM ksprojects
+--GROUP BY category;
+-- 9 --
+--SELECT DISTINCT main_category, COUNT(state) AS success_states, backers
+--FROM ksprojects
+--WHERE state LIKE 'successful'
+--	AND backers > 4
+--	AND backers < 11
+--GROUP BY main_category, backers;
+-- 10 --
+--SELECT DISTINCT currency, SUM(pledged) AS sum_pledged
+--FROM ksprojects
+--GROUP BY currency
+--ORDER BY sum_pledged ASC;
+-- 11 --
+--SELECT DISTINCT main_category, SUM(backers)
+--FROM ksprojects
+--WHERE main_category NOT IN('Games','Technology')
+--GROUP BY main_category
+--HAVING SUM(backers) > 10000
+--ORDER BY main_category;
+
+
+
