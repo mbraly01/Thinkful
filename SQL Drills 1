@@ -1,0 +1,77 @@
+-- 1 --
+--SELECT COUNT(*) AS totalvehicles
+--FROM vehicles;
+-- Ans: 33442 --
+-- 2 --
+--SELECT *
+--FROM vehicles;
+-- 3 --
+--SELECT make, model, id
+--FROM vehicles
+--WHERE year BETWEEN 2000 AND 2019;
+-- 4 --
+--SELECT COUNT (year)
+--FROM vehicles
+--WHERE year BETWEEN 2000 AND 2019;
+-- Ans: 16649 --
+-- 5 --
+--SELECT COUNT (*)
+--FROM vehicles
+--WHERE year BETWEEN 2000 AND 2015;
+-- Ans: 16649 --
+-- 6 --
+--SELECT COUNT(*)
+--FROM vehicles
+--WHERE year IN(1990, 2000, 2010)
+-- Ans: 3026 --
+-- 7 --
+--SELECT COUNT (*)
+--FROM vehicles
+--WHERE year BETWEEN 1987 AND 2005
+--	AND year NOT IN (1990, 2000);
+-- 8 --
+--SELECT year, make, model, ((hwy+cty)/2) AS average_mpg
+--FROM vehicles;
+-- 9 --
+--SELECT year, make, model, (hwy || ' highway. ' || cty || ' city') as highway_city
+--FROM vehicles;
+-- 10 --
+--SELECT id, make, model, year
+--FROM vehicles
+--WHERE cyl IS NULL
+--	OR displ IS NULL;
+-- 11 --
+--SELECT DISTINCT (drive, fuel)
+--FROM vehicles
+--WHERE year > 1999;
+-- 12 --
+--SELECT *
+--FROM vehicles
+--WHERE (make = 'Ford' OR make = 'Chevrolet') AND (class = 'Compact Cars' OR class = 'Subcompact Cars');
+-- 13 --
+--SELECT *
+--FROM vehicles
+--ORDER BY hwy
+--LIMIT 10;
+-- 14 --
+--SELECT *
+--FROM vehicles
+--WHERE year >= 2000 AND model LIKE 'X%'
+--ORDER BY make;
+-- 15 --
+--SELECT COUNT (*)
+--FROM vehicles
+--WHERE cyl IS NULL;
+--Ans. 58
+-- 16 --
+--SELECT COUNT (*)
+--FROM vehicles
+--WHERE year >= 2000
+--	AND hwy > 20
+--	AND displ > 3;
+-- Ans: 4400
+-- 17 --
+--SELECT *
+--FROM vehicles
+--WHERE model LIKE '__X%';
+
