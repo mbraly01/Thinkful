@@ -35,13 +35,13 @@ SELECT ROUND(AVG(avg_math_4_score), 2) AS avg_score
 FROM naep
 WHERE year >= 2000;
 -- 7 - Trouble here
-SELECT state AS below_average_statesy2000
+SELECT DISTINCT state AS below_average_statesy2000
 FROM naep
-WHERE year = 2000
-	AND avg_math_4_score IS NOT NULL
+WHERE avg_math_4_score IS NOT NULL
 	AND avg_math_4_score <
 	(SELECT AVG(avg_math_4_score)	
-	FROM naep);
+	FROM naep
+	WHERE year = 2000);
 -- 8
 SELECT state AS scores_missing_y2000
 FROM naep
