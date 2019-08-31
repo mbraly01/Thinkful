@@ -1,0 +1,75 @@
+14.5 Challenge - fix the expirements
+
+1 - The Sith Lords are concerned that their recruiting slogan, "Give In to Your Anger,"
+isn't very effective. Darth Vader develops an alternative slogan, "Together We Can
+Rule the Galaxy." They compare the slogans on two groups of 50 captured droids each.
+In one group, Emperor Palpatine delivers the "Anger" slogan. In the other, Darth Vader
+presents the "Together" slogan. 20 droids convert to the Dark Side after hearing
+Palpatine's slogan, while only 5 droids convert after hearing Vader's. The Sith's
+data scientist concludes that "Anger" is a more effective slogan and should continue to
+be used.
+
+Ans. Problem 1 - Emporer Palpatine and Darth Vader are two different Sith lords
+delivering two different lines. It would be a more effective A/B test if both lines
+were delivered by the same Sith lord. The drones they use for the expirement have all
+captured. These drones are not reflective of the galactic population. It woulkd be
+more effective to use this slogan throughout the planetary system that the Empire
+controls.
+
+2 - In the past, the Jedi have had difficulty with public relations. They send two
+envoys, Jar Jar Binks and Mace Windu, to four friendly and four unfriendly planets
+respectively, with the goal of promoting favorable feelings toward the Jedi. Upon
+their return, the envoys learn that Jar Jar was much more effective than Windu: Over
+75% of the people surveyed said their attitudes had become more favorable after
+speaking with Jar Jar, while only 65% said their attitudes had become more favorable
+after speaking with Windu. This makes Windu angry, because he is sure that he had a
+better success ratethan Jar Jar on every planet. The Jedi choose Jar Jar to be their
+representative inthe future.
+
+Ans. Problem 2 - Jar Jar Binks and Mace Windu went to two different types of planets:
+friendly for Jar Jar and unfriendly for Mace Windu. This is a bias in aasignment to
+conditions, since there is a failure of randomness. It would be better if both Jar Jar
+and Mace Windu went to the same types of planets as each other. Windu become angry at
+hearing that Jar Jar was more effective which indicates Observer bias. It would be
+better if Windu was a neutral party and didn't form conclusions aheda of the expirement.
+
+3 - A company with work sites in five different countries has sent you data on employee
+satisfaction rates for workers in Human Resources and workers in Information Technology.
+Most HR workers are concentrated in three of the countries, while IT workers are equally
+distributed across worksites. The company requests a report on satisfaction for each
+job type. You calculate average job satisfaction for HR and for IT and present the
+report.
+
+Ans. Problem 3 - There are five different countries surveyed. It would be more effective to get the
+data on all five seperately and then compare the data on a whole to see if it falls
+victim to Simpson's Paradox. HR workers are located within 3 countries primarily.
+It would be more effective to just receive the results from those three countries.
+It's unclear if the survey is going out to the same numbers of employees in both
+departments or if all employees in both departments will be getting the survey.
+It would be better if both sets of employees were in the same sized sample.
+
+When people install the Happy Days Fitness Tracker app, they are asked to "opt in"
+to a data collection scheme where their level of physical activity data is
+automatically sent to the company for product research purposes. During your interview
+with the company, they tell you that the app is very effective because after installing
+the app, the data show that people's activity levels rise steadily.
+
+Ans. Problem 4 - There is selection bias when users are asked to opt in to a data
+collection scheme. It would be better to randomly collect data on certain users,
+and to hide the data collection information in the terms and conditions. This population
+May be more active than the average user, so an opt in seems bad. There does not seem
+to be a set amount of time that the expirement is running, so it would be better to have
+a set amount of time
+
+5 - To prevent cheating, a teacher writes three versions of a test. She stacks the three
+versions together, first all copies of Version A, then all copies of Version B, then
+all copies of Version C. As students arrive for the exam, each student takes a test.
+When grading the test, the teacher finds that students who took Version B scored higher
+than students who took either Version A or Version C. She concludes from this that
+Version B is easier, and discards it.
+
+Ans. 5 - THere is not randomness in who gets each test, but the tests are instead given
+out from top to bottom. Perhaps a AP class is down the hall, while an easier class is
+next store, so the kids from the easier class arrive first. It would be better to shuffle
+the tests together randomly so there is no contestual bias.
+
