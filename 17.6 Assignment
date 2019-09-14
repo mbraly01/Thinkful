@@ -1,0 +1,131 @@
+import matplotlib.pyplot as plt
+import seaborn as sns
+import numpy as np
+import pandas as pd
+import seaborn as sns
+import scipy.stats as stats
+from scipy.stats.stats import ttest_ind
+from scipy.stats.mstats import winsorize
+from sqlalchemy import create_engine
+import warnings
+
+warnings.filterwarnings('ignore')
+sns.set(style="whitegrid")
+
+postgres_user = 'dsbc_student'
+postgres_pw = '7*.8G9QH21'
+postgres_host = '142.93.121.174'
+postgres_port = '5432'
+postgres_db = 'studentsperformance'
+
+engine = create_engine('postgresql://{}:{}@{}:{}/{}'.format(postgres_user,
+                                                            postgres_pw, postgres_host,
+                                                            postgres_port,
+                                                            postgres_db))
+
+sp_df = pd.read_sql_query('select * from studentsperformance', con=engine)
+
+print(sp_df.info())
+print(sp_df.head())
+engine.dispose()
+
+plt.figure(figsize=(18,5))
+
+
+'''
+plt.subplot(1,3,1)
+sns.barplot(sp_df["gender"], sp_df["math score"])
+plt.title("gender per math score")
+
+plt.subplot(1,3,2)
+sns.barplot(sp_df["gender"], sp_df["reading score"])
+plt.title("gender per reading score")
+
+plt.subplot(1,3,3)
+sns.barplot(sp_df["gender"], sp_df["writing score"])
+plt.title("gender per writing score")
+
+plt.show()
+
+plt.subplot(1,3,1)
+sns.barplot(sp_df["race/ethnicity"], sp_df["math score"])
+plt.title("ethnicity per math score")
+
+plt.subplot(1,3,2)
+sns.barplot(sp_df["race/ethnicity"], sp_df["reading score"])
+plt.title("ethnicity per reading score")
+
+plt.subplot(1,3,3)
+sns.barplot(sp_df["race/ethnicity"], sp_df["writing score"])
+plt.title("ethnicity per writing score")
+
+plt.show()
+
+plt.subplot(1,3,1)
+sns.barplot(sp_df["parental level of education"], sp_df["math score"])
+plt.title("parental level of education per math score")
+
+plt.subplot(1,3,2)
+sns.barplot(sp_df["parental level of education"], sp_df["reading score"])
+plt.title("parental level of education per reading score")
+
+plt.subplot(1,3,3)
+sns.barplot(sp_df["parental level of education"], sp_df["writing score"])
+plt.title("parental level of education per writing score")
+
+plt.show()
+'''
+#1. Yes.
+
+sp_df.groupby("gender").mean()[["math score","reading score", "writing score"]]
+
+ttest_ind(sp_df[sp_df.gender == "female"][["math score", "reading score"
+                                                     , "writing score"]],
+          sp_df[sp_df.gender == "male"][["math score", "reading score"
+                                                   , "writing score"]])
+
+sp_df.groupby("race/ethnicity").mean()[["math score","reading score","writing score"]]
+
+ethnicities = sp_df["race/ethnicity"].unique()
+grouped_df = sp_df.groupby("race/ethnicity")
+for var in ["math score", "reading score", "writing score"]:
+    print("----------")
+    print("comparison of variables {}".format(var))
+    print("----------")
+    for i in range (0, len(ethnicities)):
+        for j in range(i+1, len(ethnicities)):
+            print("t-test between groups {} and {}:".format(ethnicities[i], ethnicities[j]
+                                                           ))
+            print(ttest_ind(sp_df[sp_df["race/ethnicity"] == ethnicities[i]][var],
+                                  sp_df[sp_df["race/ethnicity"] ==
+                                        ethnicities[j]][var]))
+
+#thereare significant differences except between groups a,b, and c
+
+grouped_lunch = sp_df.groupby("lunch").mean()[["math score", "reading score",
+                                               "writing score"]]
+print(grouped_lunch)
+
+print(ttest_ind(sp_df[sp_df.lunch == "free/reduced"][["math score", "reading score",
+                                                "writing score"]], sp_df[sp_df.lunch ==
+                                                                         "standard"]
+          [["math score", "reading score", "writing score"]]))
+
+print(sp_df.info())
+
+grouped_test = sp_df.groupby("test preparation course").mean()[["math score",
+                                                               "reading score",
+                                                                "writing score"]]
+
+                         
+
+print(ttest_ind(sp_df[sp_df["test preparation course"] == "completed"][["math score", "reading score",
+                                                "writing score"]],
+          sp_df[sp_df["test preparation course"] == "none"][["math score",
+                                                             "reading score",
+                                                             "writing score"]]))
+#people with standard lunch might have more access to private tutors
+
+print(sp_df[["math score", "reading score", "writing score"]].corr())
+
+#reading and writing are most correlated
