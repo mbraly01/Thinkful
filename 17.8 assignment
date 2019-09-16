@@ -1,0 +1,308 @@
+import pandas as pd
+import numpy as np
+import matplotlib.pyplot as plt
+import seaborn as sns
+import math
+import matplotlib.mlab as mlabPCA
+from sklearn.preprocessing import StandardScaler
+from sklearn.decomposition import PCA
+from sqlalchemy import create_engine
+import warnings
+
+warnings.filterwarnings('ignore')
+sns.set_style("whitegrid")
+
+postgres_user = 'dsbc_student'
+postgres_pw = '7*.8G9QH21'
+postgres_host = '142.93.121.174'
+postgres_port = '5432'
+postgres_db = 'useducation'
+
+engine = create_engine('postgresql://{}:{}@{}:{}/{}'.format(
+    postgres_user, postgres_pw, postgres_host, postgres_port, postgres_db))
+
+education_df = pd.read_sql_query(
+    'select * from useducation',con=engine)
+engine.dispose()
+
+education_df.info()
+
+print(education_df["AVG_MATH_4_SCORE"].count())
+print(education_df["AVG_MATH_8_SCORE"].count())
+print(education_df["AVG_READING_4_SCORE"].count())
+print(education_df["AVG_READING_8_SCORE"].count())
+'''
+i = education_df["AVG_MATH_4_SCORE"].mean()
+j = education_df["AVG_MATH_4_SCORE"].mean() * (1+ (len(education_df
+                                                       ["AVG_MATH_4_SCORE"])
+                                                   - len(education_df
+                                                   ["AVG_MATH_8_SCORE"])))
+k = education_df["AVG_MATH_4_SCORE"].mean()* (1+ (len(education_df
+                                                       ["AVG_MATH_4_SCORE"])
+                                                   - len(education_df
+                                                   ["AVG_READING_4_SCORE"])))
+l = education_df["AVG_MATH_4_SCORE"].mean()* (1+ (len(education_df
+                                                       ["AVG_MATH_4_SCORE"])
+                                                  - len(education_df
+                                                   ["AVG_READING_8_SCORE"])))
+education_df["overall score"] = i + j + k + l
+
+print(education_df.corr(method = "pearson"))
+'''
+
+#Correct answer:
+education_df["overall_score"] = (education_df["GRADES_4_G"]*((education_df["AVG_MATH_4_SCORE"]
++ education_df["AVG_READING_4_SCORE"])*0.5) + education_df["GRADES_8_G"]
+                                 * ((education_df["AVG_MATH_8_SCORE"] + education_df
+                                 ["AVG_READING_8_SCORE"])*0.5))/(education_df["GRADES_4_G"]
+                                 + education_df["GRADES_8_G"])
+
+
+'''
+#2 - Total expenditure
+
+'''
+
+education_df['totexp_z'] = (education_df['TOTAL_EXPENDITURE'] -
+                            education_df['TOTAL_EXPENDITURE'].
+                            mean())/education_df['TOTAL_EXPENDITURE'].std()
+education_df['insexp_z'] = (education_df['INSTRUCTION_EXPENDITURE'] -
+                             education_df['INSTRUCTION_EXPENDITURE'].
+                             mean())/ education_df['INSTRUCTION_EXPENDITURE'].std()
+education_df['otherexp_z'] = (education_df['OTHER_EXPENDITURE'] -
+                             education_df['OTHER_EXPENDITURE'].
+                               mean())/ education_df['OTHER_EXPENDITURE'].std()
+education_df['suppexp_z'] = (education_df['SUPPORT_SERVICES_EXPENDITURE'] -
+                             education_df['SUPPORT_SERVICES_EXPENDITURE'].
+                              mean())/ education_df['SUPPORT_SERVICES_EXPENDITURE'].std()
+education_df['capexp_z'] = (education_df['CAPITAL_OUTLAY_EXPENDITURE'] -
+                             education_df['CAPITAL_OUTLAY_EXPENDITURE'].
+                             mean())/ education_df['CAPITAL_OUTLAY_EXPENDITURE'].std()
+'''
+t = sns.regplot('overall_score','capexp_z', education_df,
+                x_jitter=.49, y_jitter=.49,fit_reg=False)
+
+t.axhline(0, color='k', linestyle='-', linewidth=2)
+t.axvline(0, color='k', linestyle='-', linewidth=2)
+t.axes.set_title('Standardized data')
+plt.show()
+
+t = sns.regplot('overall_score','insexp_z', education_df,
+                x_jitter=.49, y_jitter=.49,fit_reg=False)
+
+t.axhline(0, color='k', linestyle='-', linewidth=2)
+t.axvline(0, color='k', linestyle='-', linewidth=2)
+t.axes.set_title('Standardized data')
+plt.show()
+
+t = sns.regplot('overall_score','totexp_z', education_df,
+                x_jitter=.49, y_jitter=.49,fit_reg=False)
+
+t.axhline(0, color='k', linestyle='-', linewidth=2)
+t.axvline(0, color='k', linestyle='-', linewidth=2)
+t.axes.set_title('Standardized data')
+plt.show()
+
+t = sns.regplot('overall_score','otherexp_z', education_df,
+                x_jitter=.49, y_jitter=.49,fit_reg=False)
+
+t.axhline(0, color='k', linestyle='-', linewidth=2)
+t.axvline(0, color='k', linestyle='-', linewidth=2)
+t.axes.set_title('Standardized data')
+plt.show()
+
+t = sns.regplot('overall_score','suppexp_z', education_df,
+                x_jitter=.49, y_jitter=.49,fit_reg=False)
+
+t.axhline(0, color='k', linestyle='-', linewidth=2)
+t.axvline(0, color='k', linestyle='-', linewidth=2)
+t.axes.set_title('Standardized data')
+plt.show()
+
+education_df['totexp_z_rot'] = math.cos(40) * education_df['totexp_z'] - math.sin(40) * education_df['totexp_z']
+education_df['capexp_z_rot'] = math.cos(40) * education_df['capexp_z'] - math.sin(40) * education_df['capexp_z']
+education_df['insexp_z_rot'] = math.cos(40) * education_df['insexp_z'] - math.sin(40) * education_df['insexp_z']
+education_df['otherexp_z_rot'] = math.cos(40) * education_df['otherexp_z'] - math.sin(40) * education_df['otherexp_z']
+education_df['suppexp_z_rot'] = math.cos(40) * education_df['suppexp_z'] - math.sin(40) * education_df['suppexp_z']
+
+t = sns.regplot('overall_score','capexp_z_rot', education_df,
+                x_jitter=.49, y_jitter=.49,fit_reg=False)
+
+t.axhline(0, color='k', linestyle='-', linewidth=2)
+t.axvline(0, color='k', linestyle='-', linewidth=2)
+t.axes.set_title('Standardized data')
+plt.show()
+
+t = sns.regplot('overall_score','insexp_z_rot', education_df,
+                x_jitter=.49, y_jitter=.49,fit_reg=False)
+
+t.axhline(0, color='k', linestyle='-', linewidth=2)
+t.axvline(0, color='k', linestyle='-', linewidth=2)
+t.axes.set_title('Standardized data')
+plt.show()
+
+t = sns.regplot('overall_score','totexp_z_rot', education_df,
+                x_jitter=.49, y_jitter=.49,fit_reg=False)
+
+t.axhline(0, color='k', linestyle='-', linewidth=2)
+t.axvline(0, color='k', linestyle='-', linewidth=2)
+t.axes.set_title('Standardized data')
+plt.show()
+
+t = sns.regplot('overall_score','otherexp_z_rot', education_df,
+                x_jitter=.49, y_jitter=.49,fit_reg=False)
+
+t.axhline(0, color='k', linestyle='-', linewidth=2)
+t.axvline(0, color='k', linestyle='-', linewidth=2)
+t.axes.set_title('Standardized data')
+plt.show()
+
+t = sns.regplot('overall_score','suppexp_z_rot', education_df,
+                x_jitter=.49, y_jitter=.49,fit_reg=False)
+
+t.axhline(0, color='k', linestyle='-', linewidth=2)
+t.axvline(0, color='k', linestyle='-', linewidth=2)
+t.axes.set_title('Standardized data')
+plt.show()
+'''
+ed1_df = education_df[['TOTAL_EXPENDITURE','INSTRUCTION_EXPENDITURE','OTHER_EXPENDITURE',
+                       'SUPPORT_SERVICES_EXPENDITURE','CAPITAL_OUTLAY_EXPENDITURE']]
+ed1_df = ed1_df.dropna()
+
+X = StandardScaler().fit_transform(ed1_df)
+
+Xt = X.T
+Cx = np.cov(Xt)
+sklearn_pca = PCA(n_components = 5)
+Y_sklearn = sklearn_pca.fit_transform(X)
+eig_val_cov, eig_vec_cov = np.linalg.eig(Cx)
+
+P = eig_vec_cov[:, 0]
+
+# Transform X into Y.
+Y = P.T.dot(Xt)
+
+print(
+    'The percentage of total variance in the dataset explained by each',
+    'component from Sklearn PCA.\n',
+    sklearn_pca.explained_variance_ratio_
+)
+
+# Compare the sklearn solution to ours – a perfect match.
+plt.plot(Y_sklearn[:, 0], Y, 'o')
+plt.title('Comparing solutions')
+plt.ylabel('Sklearn Component 1')
+plt.xlabel('By-hand Component 1')
+plt.show()
+
+#4
+#They are inversly correlated
+
+#I would choose the 1st component because there is more variation
+
+'''
+correct answers
+
+
+Solution to the assignments of checkpoint 8
+In [1]:
+import pandas as pd
+import matplotlib.pyplot as plt
+import seaborn as sns
+from sqlalchemy import create_engine
+import warnings
+
+warnings.filterwarnings('ignore')
+sns.set(style="whitegrid")
+In [ ]:
+postgres_user = 'dsbc_student'
+postgres_pw = '7*.8G9QH21'
+postgres_host = '142.93.121.174'
+postgres_port = '5432'
+postgres_db = 'useducation'
+
+engine = create_engine('postgresql://{}:{}@{}:{}/{}'.format(
+    postgres_user, postgres_pw, postgres_host, postgres_port, postgres_db))
+
+education_df = pd.read_sql_query('select * from useducation',con=engine)
+
+# no need for an open connection, 
+# as we're only doing a single query
+engine.dispose()
+We fill in the missing values using interpolation since our data is a time series data:
+
+In [2]:
+fill_list = ["ENROLL", "TOTAL_REVENUE", "FEDERAL_REVENUE",
+             "STATE_REVENUE", "LOCAL_REVENUE", "TOTAL_EXPENDITURE",
+             "INSTRUCTION_EXPENDITURE", "SUPPORT_SERVICES_EXPENDITURE",
+             "OTHER_EXPENDITURE", "CAPITAL_OUTLAY_EXPENDITURE", "GRADES_PK_G",
+             "GRADES_KG_G", "GRADES_4_G", "GRADES_8_G", "GRADES_12_G", "GRADES_1_8_G",
+             "GRADES_9_12_G", "GRADES_ALL_G"]
+
+states = education_df["STATE"].unique()
+
+for state in states:
+    education_df.loc[education_df["STATE"] == state, fill_list] = education_df.loc[education_df["STATE"] == state, fill_list].interpolate()
+
+# we drop the null values after interpolation
+education_df.dropna(inplace=True)
+1. Create a new score variable from the weighted averages of the all score variables in the datasets. Notice that the number of students in the fourth grade isn't the same with the number of students in the eighth grade. So, you should weight the scores appropriately!.
+In [3]:
+education_df["overall_score"] = (education_df["GRADES_4_G"]*((education_df["AVG_MATH_4_SCORE"] + education_df["AVG_READING_4_SCORE"])*0.5) + education_df["GRADES_8_G"]
+                                 * ((education_df["AVG_MATH_8_SCORE"] + education_df["AVG_READING_8_SCORE"])*0.5))/(education_df["GRADES_4_G"] + education_df["GRADES_8_G"])
+We weighted the score variables using the number of students in the respective grades.
+
+2. What are the correlations between this newly created score variable and the expenditure types? Which one of the expenditure type is more correlated than the others?
+In [4]:
+education_df[["overall_score", "TOTAL_EXPENDITURE", "INSTRUCTION_EXPENDITURE",
+              "SUPPORT_SERVICES_EXPENDITURE", "OTHER_EXPENDITURE", "CAPITAL_OUTLAY_EXPENDITURE"]].corr()
+Out[4]:
+overall_score	TOTAL_EXPENDITURE	INSTRUCTION_EXPENDITURE	SUPPORT_SERVICES_EXPENDITURE	OTHER_EXPENDITURE	CAPITAL_OUTLAY_EXPENDITURE
+overall_score	1.000000	0.074382	0.087626	0.079175	0.011099	-0.004472
+TOTAL_EXPENDITURE	0.074382	1.000000	0.990203	0.992861	0.943844	0.924816
+INSTRUCTION_EXPENDITURE	0.087626	0.990203	1.000000	0.974425	0.902323	0.883155
+SUPPORT_SERVICES_EXPENDITURE	0.079175	0.992861	0.974425	1.000000	0.952062	0.909381
+OTHER_EXPENDITURE	0.011099	0.943844	0.902323	0.952062	1.000000	0.917785
+CAPITAL_OUTLAY_EXPENDITURE	-0.004472	0.924816	0.883155	0.909381	0.917785	1.000000
+The most correlated variable with the overall score is the instruction expenditure
+
+3. Now, apply PCA to the four expenditure types. How much of the total variance is explained by the first component?
+In [5]:
+from sklearn.decomposition import PCA
+from sklearn.preprocessing import StandardScaler
+
+X = education_df[["INSTRUCTION_EXPENDITURE", "SUPPORT_SERVICES_EXPENDITURE",
+                  "OTHER_EXPENDITURE", "CAPITAL_OUTLAY_EXPENDITURE"]]
+
+X = StandardScaler().fit_transform(X)
+
+sklearn_pca = PCA(n_components=1)
+education_df["pca_1"] = sklearn_pca.fit_transform(X)
+
+print(
+    'The percentage of total variance in the dataset explained by each',
+    'component from Sklearn PCA.\n',
+    sklearn_pca.explained_variance_ratio_
+)
+The percentage of total variance in the dataset explained by each component from Sklearn PCA.
+ [0.94252701]
+More than 94% of the total variance is explained by the first principal component.
+
+4. What is the correlation between the overall score variable and the first principal component?
+In [6]:
+education_df[["overall_score", "pca_1", "TOTAL_EXPENDITURE", "INSTRUCTION_EXPENDITURE",
+              "SUPPORT_SERVICES_EXPENDITURE", "OTHER_EXPENDITURE", "CAPITAL_OUTLAY_EXPENDITURE"]].corr()
+Out[6]:
+overall_score	pca_1	TOTAL_EXPENDITURE	INSTRUCTION_EXPENDITURE	SUPPORT_SERVICES_EXPENDITURE	OTHER_EXPENDITURE	CAPITAL_OUTLAY_EXPENDITURE
+overall_score	1.000000	0.044988	0.074382	0.087626	0.079175	0.011099	-0.004472
+pca_1	0.044988	1.000000	0.992059	0.968492	0.988085	0.971480	0.955011
+TOTAL_EXPENDITURE	0.074382	0.992059	1.000000	0.990203	0.992861	0.943844	0.924816
+INSTRUCTION_EXPENDITURE	0.087626	0.968492	0.990203	1.000000	0.974425	0.902323	0.883155
+SUPPORT_SERVICES_EXPENDITURE	0.079175	0.988085	0.992861	0.974425	1.000000	0.952062	0.909381
+OTHER_EXPENDITURE	0.011099	0.971480	0.943844	0.902323	0.952062	1.000000	0.917785
+CAPITAL_OUTLAY_EXPENDITURE	-0.004472	0.955011	0.924816	0.883155	0.909381	0.917785	1.000000
+The correlation of the first principal component is less than the instruction expenditure and the support service expenditure variables.
+
+5. If you were to choose the best variables for your model, would you prefer using the first principal component instead of the expenditure variables? Why?
+Instruction expenditure variable is more correlated with the overall score than the first principal component. Hence using instruction expenditure makes more sense. PCA works best when the correlation between the variables are less than and equal to 0.8. In our case, all of the expenditure variables are highly correlated with each other. This may result in instable principal component estimations.
+
