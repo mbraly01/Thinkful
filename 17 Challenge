@@ -1,0 +1,65 @@
+import pandas as pd
+import numpy as np
+import matplotlib.pyplot as plt
+import seaborn as sns
+import math
+import matplotlib.mlab as mlabPCA
+from scipy.stats.mstats import winsorize
+from sklearn.preprocessing import StandardScaler
+from sklearn.decomposition import PCA
+from sqlalchemy import create_engine
+import warnings
+
+warnings.filterwarnings('ignore')
+sns.set_style("whitegrid")
+
+postgres_user = 'dsbc_student'
+postgres_pw = '7*.8G9QH21'
+postgres_host = '142.93.121.174'
+postgres_port = '5432'
+postgres_db = 'lifeexpectancy'
+
+engine = create_engine('postgresql://{}:{}@{}:{}/{}'.format(
+    postgres_user, postgres_pw, postgres_host, postgres_port, postgres_db))
+
+life_df = pd.read_sql_query(
+    'select * from lifeexpectancy',con=engine)
+engine.dispose()
+print(life_df.info())
+
+for i in life_df:
+    if i != 'Country' and i != 'Status':
+        #print(life_df[i].head())
+        life_df[i].fillna(life_df[i].mean(), inplace=True)
+        life_df[i] = winsorize(life_df[i], (0, 0.10))
+
+#There weren't that many missing values, so instead of dropping the entries, I filled
+#them with the mean
+#I winsorized the values with high outliers, since I wanted to make sure the outliers
+#didin't have an outsized impact on my data
+
+
+#The variables with the highest correlation to life expectancy were Schooling,
+        #Income composition of resources
+        #HIV/AIDS
+        #Adult mortality
+print(life_df.corr())
+print(life_df.columns.tolist())
+
+plt.subplot(2,2,1)
+plt.hist(life_df["Schooling"])
+plt.title("Schooling")
+
+plt.subplot(2,2,2)
+plt.hist(life_df["Income composition of resources"])
+plt.title("Income composition of resources")
+
+sns.lmplot(y='Life expectancy',x='Income composition of resources', data=life_df,
+           fit_reg=True, scatter_kws={'alpha':-.4})
+plt.show()
+
+#Findings: Life expectancy is heavily correlated to income, schooling, and is inversely
+#correlated to HIV/AIDS and Adult mortality. A feature to add would be annual income,
+#total net worth, and level of medical care. These would help us identify what level
+#of medical care and what net worth is necessary for preventing child mortality
+
