@@ -1,0 +1,59 @@
+import matplotlib.pyplot as plt
+import numpy as np
+import pandas as pd
+import sqlalchemy.engine as se
+import warnings
+
+warnings.filterwarnings('ignore')
+
+postgres_user = 'dsbc_student'
+postgres_pw = '7*.8G9QH21'
+postgres_host = '142.93.121.174'
+postgres_port = '5432'
+postgres_db = 'youtube'
+
+engine = se.create_engine('postgresql://{}:{}@{}:{}/{}'.format(
+    postgres_user, postgres_pw, postgres_host, postgres_port, postgres_db))
+
+youtube_df = pd.read_sql_query('select * from youtube',con=engine)
+
+# no need for an open connection, 
+# as we're only doing a single query
+engine.dispose()
+
+plt.boxplot(youtube_df["Video views"])
+plt.title("Box plot of video views (whis=1.5)")
+plt.show()
+
+plt.boxplot(youtube_df["Video views"], whis=20)
+plt.title("Box plot of video views (whis=20)")
+plt.show()
+
+plt.hist(youtube_df["Video views"])
+plt.title("Histogram of video views")
+plt.show()
+
+from scipy.stats import zscore
+
+z_scores = zscore(youtube_df["Video views"])
+for threshold in range(1,5):
+    print("The score threshold is: {}".format(threshold))
+    print("The indices of the outliers:")
+    print(np.where(z_scores > threshold))
+    print("Number of outliers is: {}".format(len((np.where(z_scores > threshold)[0]))))
+
+    # NumPy's percentile() method returns the 
+# values of the given percentiles. In our case,
+# we give 75 and 25 as parameters which corresponds 
+# to the third and the first quartile.
+q75, q25 = np.percentile(youtube_df["Video views"], [75 ,25])
+iqr = q75 - q25
+
+for threshold in np.arange(1,5,0.5):
+    min_val = q25 - (iqr*threshold)
+    max_val = q75 + (iqr*threshold)
+    print("The score threshold is: {}".format(threshold))
+    print("Number of outliers is: {}".format(
+        len((np.where((youtube_df["Video views"] > max_val) 
+                       (youtube_df["Video views"] < min_val))[0]))
+    ))
