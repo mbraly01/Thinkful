@@ -1,0 +1,39 @@
+ import numpy as np
+import pandas as pd
+import scipy
+import sklearn
+import matplotlib.pyplot as plt
+import seaborn as sns
+import csv
+
+imdb_df = pd.read_csv("imdb_labelled.csv",delimiter= '\t', header=None)
+imdb_df.columns = ["Review", "Sentiment"]
+keywords = ['bad','vile','slow','pacing','bad acting','sloppy','snoozefest']
+
+for key in keywords:
+    imdb_df[str(key)] = imdb_df["Review"].str.contains(
+    ' ' + str(key) + ' ',
+        case=False)
+
+print(imdb_df.head())
+
+sns.heatmap(imdb_df.corr())
+#<matplotlib.axes._subplots.AxesSubplot at 0x11588c2b0>
+plt.show()
+
+yelp_df = pd.read_csv("yelp_labelled.csv",delimiter= '\t', header=None)
+yelp_df.columns = ["Review", "Sentiment"]
+keywords = ['bad','vile','slow','pacing','bad acting','sloppy','snoozefest']
+
+for key in keywords:
+    yelp_df[str(key)] = yelp_df["Review"].str.contains(
+    ' ' + str(key) + ' ',
+        case=False)
+
+print(yelp_df.head())
+
+sns.heatmap(yelp_df.corr())
+#<matplotlib.axes._subplots.AxesSubplot at 0x11588c2b0>
+plt.show()
+
+#I selected keywords that were negative to see their popularity
