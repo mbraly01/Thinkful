@@ -1,0 +1,177 @@
+import matplotlib.pyplot as plt
+import numpy as np
+import pandas as pd
+from sklearn import linear_model
+import statsmodels.formula.api as smf
+from sqlalchemy import create_engine
+import statsmodels.api as sm
+
+import warnings
+warnings.filterwarnings('ignore')
+
+postgres_user = 'dsbc_student'
+postgres_pw = '7*.8G9QH21'
+postgres_host = '142.93.121.174'
+postgres_port = '5432'
+postgres_db = 'houseprices'
+
+engine = create_engine('postgresql://{}:{}@{}:{}/{}'.format(
+    postgres_user, postgres_pw, postgres_host, postgres_port, postgres_db))
+house_prices_df = pd.read_sql_query('select * from houseprices',con=engine)
+
+# no need for an open connection, as we're only doing a single query
+engine.dispose()
+
+
+house_prices_df.info()
+
+house_prices_df.describe()
+
+'''
+We have some columns that are numerical and some are non-numerical. This
+distinction is important because if we like to work with non-numerical
+variables, we need to convert them to numerical. However, being numerical
+doesn't mean being continuous or categorical.
+'''
+non_numeric_columns = house_prices_df.select_dtypes(['object']).columns
+print(non_numeric_columns)
+print("The number of non-numerical columns is {}".format(len
+                                                         (non_numeric_columns)))
+
+numeric_columns = house_prices_df.select_dtypes(['int64', 'float64']).columns
+print(numeric_columns)
+print("The number of numerical columns is {}".format(len(numeric_columns)))
+
+#missing data
+total_missing = house_prices_df.isnull().sum().sort_values(ascending=False)
+percent_missing = (house_prices_df.isnull().sum()/house_prices_df.isnull().count()).sort_values(ascending=False)
+missing_data = pd.concat([total_missing, percent_missing], axis=1, keys=['Total', 'Percent'])
+missing_data.head(20)
+
+
+#Only 19 of the features have missing values. Since, in this checkpoint we'll
+#not be using any of these 19 features; we do nothing here. But if you want to
+#use them in your model, you need to decide what to do with the missing values
+# the sales price seems to be non normal
+'''
+plt.hist(house_prices_df.saleprice)
+plt.title("The distribution of sale prices")
+plt.xlabel("sale prices")
+plt.ylabel("number of occurrence")
+plt.show()
+'''
+np.abs(house_prices_df[numeric_columns].iloc[:,1:].corr().
+       loc[:,"saleprice"]).sort_values(ascending=False)
+
+#To understand the univariate relation between our target variable and
+#non-numerical features; we plot each feature against the target variable.
+#In the charts below, we show the average sale prices with respect to the each
+#categories of a feature.
+'''
+plt.figure(figsize=(30,50))
+
+for index, column in enumerate(non_numeric_columns):
+    plt.subplot(11,4,index+1)
+    plt.bar(house_prices_df.groupby(column)["saleprice"].mean().index,
+            house_prices_df.groupby(column)["saleprice"].mean(),
+           color=("grey","green"))
+    plt.title("Average saleprice wrt. {}".format(column))
+    plt.ylabel("Average sale price")
+    plt.xlabel(column)
+    plt.xticks(rotation='vertical')
+'''
+
+house_prices_df = pd.concat([house_prices_df,pd.get_dummies(house_prices_df.mszoning, prefix="mszoning", drop_first=True)], axis=1)
+house_prices_df = pd.concat([house_prices_df,pd.get_dummies(house_prices_df.street, prefix="street", drop_first=True)], axis=1)
+dummy_column_names = list(pd.get_dummies(house_prices_df.mszoning, prefix="mszoning", drop_first=True).columns)
+dummy_column_names = dummy_column_names + list(pd.get_dummies(house_prices_df.street, prefix="street", drop_first=True).columns)
+
+X = house_prices_df[['overallqual', 'grlivarea', 'garagecars', 'garagearea',
+                     'totalbsmtsf'] + dummy_column_names]
+
+Y = house_prices_df.saleprice
+'''
+plt.tight_layout()
+plt.show()
+'''
+X = sm.add_constant(X)
+
+results = sm.OLS(Y, X).fit()
+
+results.summary()
+
+
+#Assumption 1
+lrm = linear_model.LinearRegression()
+X_sq = X**2
+lrm.fit(X,Y)
+predictions = lrm.predict(X)
+
+
+print('\nCoefficients: \n', lrm.coef_)
+print('\nIntercept: \n', lrm.intercept_)
+'''
+
+BROKEN
+#this code is copied straight from the lesson
+#tried converting X to numpy
+#compared lengths of X and predictions
+#predictions = pd.DataFrame(data=predictions[0,0])
+X = X.to_numpy()
+print(len(X))
+print(len(predictions))
+#still broken, moving forward
+plt.scatter(X, predictions)
+plt.xlabel("feature")
+plt.ylabel("target")
+plt.title('Linear regression')
+plt.show()
+'''
+#ASSUMPTION 2
+errors = Y - predictions
+print("Mean of the errors in the medical costs model is: {}".format(np.mean(errors)))
+#IT MEETS ASSUMPTION TWO, SINCE THE MEAN OF THE ERRORS IS ESSENTIALLY ZERO
+
+#ASSUMPTION 3
+plt.scatter(predictions, errors)
+plt.xlabel('Predicted')
+plt.ylabel('Residual')
+plt.axhline(y=0)
+plt.title('Residual vs. Predicted')
+plt.show()
+#FAILS SINCE THE VARIENCE ON THE ERROR IS ALL OVER THE PLACE
+# ASSUMPTION 4
+pd.set_option('display.max_rows', 500)
+pd.set_option('display.max_columns', 500)
+pd.set_option('display.width', 1000)
+print(X.corr())
+#GARAGE CARS Has the highest correlation to other features and should be removed
+
+#ASSUMPTION 5
+plt.plot(errors)
+plt.show()
+#PLOT ERRORS LOOK UNRELATED TO ONE ANOTHER
+
+from statsmodels.tsa.stattools import acf
+
+acf_data = acf(errors)
+
+plt.plot(acf_data[1:])
+plt.show()
+
+
+#ASSUMPTION 6
+
+from scipy.stats import jarque_bera
+from scipy.stats import normaltest
+jb_stats = jarque_bera(errors)
+norm_stats = normaltest(errors)
+
+print("Jarque-Bera test statistics is {0}and p value is {1}".format(jb_stats[0], jb_stats[1]))
+
+
+#THE ERRORS ARE NOT NORMALLY DISTRIBUTED SO WE MUSST BE LEAVING A VARIABLE OUT
+print("Normality test statistics is {0} and p value is {1}".format(norm_stats[0], norm_stats[1]))
+
+
+
