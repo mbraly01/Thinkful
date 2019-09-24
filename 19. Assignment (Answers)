@@ -1,0 +1,96 @@
+import numpy as np
+import pandas as pd
+import matplotlib.pyplot as plt
+from sqlalchemy import create_engine
+import statsmodels.api as sm
+
+import warnings
+warnings.filterwarnings('ignore')
+
+postgres_user = 'dsbc_student'
+postgres_pw = '7*.8G9QH21'
+postgres_host = '142.93.121.174'
+postgres_port = '5432'
+postgres_db = 'houseprices'
+
+engine = create_engine('postgresql://{}:{}@{}:{}/{}'.format(
+    postgres_user, postgres_pw, postgres_host, postgres_port, postgres_db))
+house_prices_df = pd.read_sql_query('select * from houseprices',con=engine)
+
+# no need for an open connection, as we're only doing a single query
+engine.dispose()
+
+
+house_prices_df.info()
+
+house_prices_df.describe()
+
+'''
+We have some columns that are numerical and some are non-numerical. This
+distinction is important because if we like to work with non-numerical
+variables, we need to convert them to numerical. However, being numerical
+doesn't mean being continuous or categorical.
+'''
+non_numeric_columns = house_prices_df.select_dtypes(['object']).columns
+print(non_numeric_columns)
+print("The number of non-numerical columns is {}".format(len
+                                                         (non_numeric_columns)))
+
+numeric_columns = house_prices_df.select_dtypes(['int64', 'float64']).columns
+print(numeric_columns)
+print("The number of numerical columns is {}".format(len(numeric_columns)))
+
+#missing data
+total_missing = house_prices_df.isnull().sum().sort_values(ascending=False)
+percent_missing = (house_prices_df.isnull().sum()/house_prices_df.isnull().count()).sort_values(ascending=False)
+missing_data = pd.concat([total_missing, percent_missing], axis=1, keys=['Total', 'Percent'])
+missing_data.head(20)
+
+
+#Only 19 of the features have missing values. Since, in this checkpoint we'll
+#not be using any of these 19 features; we do nothing here. But if you want to
+#use them in your model, you need to decide what to do with the missing values
+# the sales price seems to be non normal
+
+plt.hist(house_prices_df.saleprice)
+plt.title("The distribution of sale prices")
+plt.xlabel("sale prices")
+plt.ylabel("number of occurrence")
+plt.show()
+
+np.abs(house_prices_df[numeric_columns].iloc[:,1:].corr().
+       loc[:,"saleprice"]).sort_values(ascending=False)
+
+#To understand the univariate relation between our target variable and
+#non-numerical features; we plot each feature against the target variable.
+#In the charts below, we show the average sale prices with respect to the each
+#categories of a feature.
+
+plt.figure(figsize=(30,50))
+
+for index, column in enumerate(non_numeric_columns):
+    plt.subplot(11,4,index+1)
+    plt.bar(house_prices_df.groupby(column)["saleprice"].mean().index,
+            house_prices_df.groupby(column)["saleprice"].mean(),
+           color=("grey","green"))
+    plt.title("Average saleprice wrt. {}".format(column))
+    plt.ylabel("Average sale price")
+    plt.xlabel(column)
+    plt.xticks(rotation='vertical')
+
+
+X = house_prices_df[['overallqual', 'grlivarea', 'garagecars', 'garagearea',
+                     'totalbsmtsf'] + dummy_column_names]
+Y = house_prices_df.saleprice
+
+plt.tight_layout()
+plt.show()
+
+X = sm.add_constant(X)
+
+results = sm.OLS(Y, X).fit()
+
+results.summary()
+
+
+
