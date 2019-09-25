@@ -1,0 +1,119 @@
+'''
+First, load the dataset from the weatherinszeged table from Thinkful's database.
+DONE
+Build a regression model where the target variable is temperature. As explanatory
+variables, use humidity, windspeed, windbearing, and pressure. Estimate the model
+using OLS.
+Now, check if your model meets the Gauss-Markov Conditions above. If some of the
+assumptions are not met, discuss the implications of the violations for the correctness
+of your model.
+'''
+import matplotlib.pyplot as plt
+import numpy as np
+import pandas as pd
+from sklearn import linear_model
+import statsmodels.formula.api as smf
+from sqlalchemy import create_engine
+import statsmodels.api as sm
+
+import warnings
+warnings.filterwarnings('ignore')
+
+postgres_user = 'dsbc_student'
+postgres_pw = '7*.8G9QH21'
+postgres_host = '142.93.121.174'
+postgres_port = '5432'
+postgres_db = 'weatherinszeged'
+
+engine = create_engine('postgresql://{}:{}@{}:{}/{}'.format(
+    postgres_user, postgres_pw, postgres_host, postgres_port, postgres_db))
+weather_df = pd.read_sql_query('select * from weatherinszeged',con=engine)
+
+# no need for an open connection, as we're only doing a single query
+engine.dispose()
+
+print(weather_df.info())
+X = weather_df[['humidity','windspeed','windbearing', 'pressure']]
+
+Y = weather_df.temperature
+
+X = sm.add_constant(X)
+
+results = sm.OLS(Y, X).fit()
+
+#print(results.summary())
+
+#Assumption 1
+lrm = linear_model.LinearRegression()
+X_sq = X**2
+lrm.fit(X,Y)
+predictions = lrm.predict(X)
+
+
+print('\nCoefficients: \n', lrm.coef_)
+print('\nIntercept: \n', lrm.intercept_)
+'''
+
+BROKEN
+#this code is copied straight from the lesson
+#tried converting X to numpy
+#compared lengths of X and predictions
+#predictions = pd.DataFrame(data=predictions[0,0])
+X = X.to_numpy()
+print(len(X))
+print(len(predictions))
+#still broken, moving forward
+plt.scatter(X, predictions)
+plt.xlabel("feature")
+plt.ylabel("target")
+plt.title('Linear regression')
+plt.show()
+'''
+#ASSUMPTION 2
+errors = Y - predictions
+print("Mean of the errors in the medical costs model is: {}".format(np.mean(errors)))
+#THERE IS STRONG MULTICOLLINEARITY. THIS MEANS WE NEED TO CHOOSE DIFFERENT FEATURES
+
+#ASSUMPTION 3
+plt.scatter(predictions, errors)
+plt.xlabel('Predicted')
+plt.ylabel('Residual')
+plt.axhline(y=0)
+plt.title('Residual vs. Predicted')
+plt.show()
+#FAILS SINCE THE VARIENCE ON THE ERROR IS ALL OVER THE PLACE
+
+# ASSUMPTION 4
+pd.set_option('display.max_rows', 500)
+pd.set_option('display.max_columns', 500)
+pd.set_option('display.width', 1000)
+print(X.corr())
+#No features should be removed based on correlation
+
+#ASSUMPTION 5
+plt.plot(errors)
+plt.show()
+#PLOT ERRORS LOOK UNRELATED TO ONE ANOTHER
+
+from statsmodels.tsa.stattools import acf
+
+acf_data = acf(errors)
+
+plt.plot(acf_data[1:])
+plt.show()
+
+
+#ASSUMPTION 6
+
+from scipy.stats import jarque_bera
+from scipy.stats import normaltest
+jb_stats = jarque_bera(errors)
+norm_stats = normaltest(errors)
+
+print("Jarque-Bera test statistics is {0}and p value is {1}".format(jb_stats[0], jb_stats[1]))
+
+
+#THE ERRORS ARE NOT NORMALLY DISTRIBUTED SO WE MUST BE LEAVING A VARIABLE OUT
+print("Normality test statistics is {0} and p value is {1}".format(norm_stats[0], norm_stats[1]))
+#BOTH P-VALUES INDICATE THAT THE ERRORS ARE NORMALLY DISTRIBUTED
+
