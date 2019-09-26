@@ -1,0 +1,117 @@
+'''
+My Answer:
+
+The coefficients for have_kids is the greatest. is the greatest, making the coefficients
+for annual income and annual income square insignificant. This makes sense because
+kids cost a lot of money and amount of money doesn't exactly correlate to spending.
+I would like to see if annual_incomeAndKids is statistically more significant than
+income alone.
+
+Part 2
+'''
+import matplotlib.pyplot as plt
+import numpy as np
+import pandas as pd
+from sklearn import linear_model
+import statsmodels.formula.api as smf
+from sqlalchemy import create_engine
+import statsmodels.api as sm
+
+import warnings
+warnings.filterwarnings('ignore')
+
+postgres_user = 'dsbc_student'
+postgres_pw = '7*.8G9QH21'
+postgres_host = '142.93.121.174'
+postgres_port = '5432'
+postgres_db = 'weatherinszeged'
+
+engine = create_engine('postgresql://{}:{}@{}:{}/{}'.format(
+    postgres_user, postgres_pw, postgres_host, postgres_port, postgres_db))
+weather_df = pd.read_sql_query('select * from weatherinszeged',con=engine)
+
+# no need for an open connection, as we're only doing a single query
+engine.dispose()
+
+print(weather_df.info())
+X = weather_df[['humidity','windspeed','windbearing', 'pressure']]
+
+Y = weather_df.temperature
+
+X = sm.add_constant(X)
+
+results = sm.OLS(Y, X).fit()
+
+print(results.summary())
+print("WIth apparent Temperature")
+
+X = weather_df[['humidity','windspeed']]
+
+Y = weather_df.apparenttemperature
+
+X = sm.add_constant(X)
+
+results = sm.OLS(Y, X).fit()
+
+print(results.summary())
+
+'''
+My Answer: Windbearing and pressure were not statistically significant with temperature.
+Due to the coefficient for windspeed being so small with the apparent temperature,
+it is not statistically significant
+
+PART 3
+'''
+
+postgres_user = 'dsbc_student'
+postgres_pw = '7*.8G9QH21'
+postgres_host = '142.93.121.174'
+postgres_port = '5432'
+postgres_db = 'houseprices'
+
+engine = create_engine('postgresql://{}:{}@{}:{}/{}'.format(
+    postgres_user, postgres_pw, postgres_host, postgres_port, postgres_db))
+house_prices_df = pd.read_sql_query('select * from houseprices',con=engine)
+
+# no need for an open connection, as we're only doing a single query
+engine.dispose()
+
+
+house_prices_df = pd.concat([house_prices_df,pd.get_dummies(house_prices_df.mszoning, prefix="mszoning", drop_first=True)], axis=1)
+house_prices_df = pd.concat([house_prices_df,pd.get_dummies(house_prices_df.street, prefix="street", drop_first=True)], axis=1)
+dummy_column_names = list(pd.get_dummies(house_prices_df.mszoning, prefix="mszoning", drop_first=True).columns)
+dummy_column_names = dummy_column_names + list(pd.get_dummies(house_prices_df.street, prefix="street", drop_first=True).columns)
+
+
+X = house_prices_df[['overallqual', 'grlivarea', 'garagecars', 'garagearea',
+                     'totalbsmtsf'] + dummy_column_names]
+
+Y = house_prices_df.saleprice
+'''
+plt.tight_layout()
+plt.show()
+'''
+X = sm.add_constant(X)
+
+results = sm.OLS(Y, X).fit()
+print(results.summary())
+'''
+grlivingarea, garagearea,totalbmtsf, and Street_pave were statisitically insignificant
+
+'''
+X = house_prices_df[['overallqual', 'garagecars', 'mszoning_FV','mszoning_RH']]
+
+Y = house_prices_df.saleprice
+
+X = sm.add_constant(X)
+
+results = sm.OLS(Y, X).fit()
+
+print(results.summary())
+
+
+'''
+Now,mszoning RH is statistically insignificant in its coefficients. This because
+features like garages most likely are more important than zoning restrictions
+'''
+
