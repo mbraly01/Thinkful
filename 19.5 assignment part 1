@@ -1,0 +1,65 @@
+'''
+First, load the dataset from the weatherinszeged table from Thinkful's database.
+DONE
+Build a regression model where the target variable is temperature. As explanatory
+variables, use humidity, windspeed, windbearing, and pressure. Estimate the model
+using OLS.
+Now, check if your model meets the Gauss-Markov Conditions above. If some of the
+assumptions are not met, discuss the implications of the violations for the correctness
+of your model.
+'''
+import matplotlib.pyplot as plt
+import numpy as np
+import pandas as pd
+from sklearn import linear_model
+import statsmodels.formula.api as smf
+from sqlalchemy import create_engine
+import statsmodels.api as sm
+
+import warnings
+warnings.filterwarnings('ignore')
+
+postgres_user = 'dsbc_student'
+postgres_pw = '7*.8G9QH21'
+postgres_host = '142.93.121.174'
+postgres_port = '5432'
+postgres_db = 'weatherinszeged'
+
+engine = create_engine('postgresql://{}:{}@{}:{}/{}'.format(
+    postgres_user, postgres_pw, postgres_host, postgres_port, postgres_db))
+weather_df = pd.read_sql_query('select * from weatherinszeged',con=engine)
+
+# no need for an open connection, as we're only doing a single query
+engine.dispose()
+
+print(weather_df.info())
+weather_df['humwind'] = weather_df.humidity * weather_df.windspeed
+X = weather_df[['humidity','windspeed','windbearing', 'pressure']]
+
+weather_df['temperature'] = weather_df['temperature'].astype(int)
+weather_df['apparenttemperature'] = weather_df['apparenttemperature'].astype(int)
+    
+Y = weather_df['temperature'] - weather_df['apparenttemperature']
+
+X = sm.add_constant(X)
+
+results = sm.OLS(Y, X).fit()
+
+print(results.summary())
+
+'''
+Question 1: .287 is not a good number but a satisfactory metric. since they
+are both the same it shows that the R-squared metric is not biased
+
+Question 2: The R-squared and R^2 adjusted are higher, so this model improves
+upon the last
+
+Question3: The R-squared and adjusted are only slightly better so
+visibility must not be that impactful of a value
+
+Question 4: for vis and humwind, AIC and BIC are 3.2e+5. for just humwind,
+the value is the same. with no humwind, the value is slightly higher. The best
+was visibility and humwind
+
+
+'''
