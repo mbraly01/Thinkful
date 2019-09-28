@@ -1,0 +1,135 @@
+import matplotlib.pyplot as plt
+import numpy as np
+import pandas as pd
+from sklearn import linear_model
+import statsmodels.formula.api as smf
+from sqlalchemy import create_engine
+import statsmodels.api as sm
+from sklearn.linear_model import LinearRegression
+from sklearn.model_selection import train_test_split
+from sklearn.metrics import mean_absolute_error
+from statsmodels.tools.eval_measures import mse, rmse
+
+import warnings
+warnings.filterwarnings('ignore')
+
+postgres_user = 'dsbc_student'
+postgres_pw = '7*.8G9QH21'
+postgres_host = '142.93.121.174'
+postgres_port = '5432'
+postgres_db = 'houseprices'
+
+engine = create_engine('postgresql://{}:{}@{}:{}/{}'.format(
+    postgres_user, postgres_pw, postgres_host, postgres_port, postgres_db))
+house_prices_df = pd.read_sql_query('select * from houseprices',con=engine)
+
+# no need for an open connection, as we're only doing a single query
+engine.dispose()
+
+
+house_prices_df.info()
+
+house_prices_df.describe()
+
+'''
+We have some columns that are numerical and some are non-numerical. This
+distinction is important because if we like to work with non-numerical
+variables, we need to convert them to numerical. However, being numerical
+doesn't mean being continuous or categorical.
+'''
+non_numeric_columns = house_prices_df.select_dtypes(['object']).columns
+print(non_numeric_columns)
+print("The number of non-numerical columns is {}".format(len
+                                                         (non_numeric_columns)))
+
+numeric_columns = house_prices_df.select_dtypes(['int64', 'float64']).columns
+print(numeric_columns)
+print("The number of numerical columns is {}".format(len(numeric_columns)))
+
+#missing data
+total_missing = house_prices_df.isnull().sum().sort_values(ascending=False)
+percent_missing = (house_prices_df.isnull().sum()/house_prices_df.isnull().count()).sort_values(ascending=False)
+missing_data = pd.concat([total_missing, percent_missing], axis=1, keys=['Total', 'Percent'])
+missing_data.head(20)
+
+
+#Only 19 of the features have missing values. Since, in this checkpoint we'll
+#not be using any of these 19 features; we do nothing here. But if you want to
+#use them in your model, you need to decide what to do with the missing values
+# the sales price seems to be non normal
+'''
+plt.hist(house_prices_df.saleprice)
+plt.title("The distribution of sale prices")
+plt.xlabel("sale prices")
+plt.ylabel("number of occurrence")
+plt.show()
+'''
+np.abs(house_prices_df[numeric_columns].iloc[:,1:].corr().
+       loc[:,"saleprice"]).sort_values(ascending=False)
+
+
+
+print(house_prices_df.info())
+house_prices_df = pd.concat([house_prices_df,pd.get_dummies(house_prices_df.mszoning, prefix="mszoning", drop_first=True)], axis=1)
+house_prices_df = pd.concat([house_prices_df,pd.get_dummies(house_prices_df.street, prefix="street", drop_first=True)], axis=1)
+dummy_column_names = list(pd.get_dummies(house_prices_df.mszoning, prefix="mszoning", drop_first=True).columns)
+dummy_column_names = dummy_column_names + list(pd.get_dummies(house_prices_df.street, prefix="street", drop_first=True).columns)
+
+
+X = house_prices_df[['overallqual', 'grlivarea', 'openporchsf', 'garagearea',
+                     'totalbsmtsf','garagecars'] + dummy_column_names]
+
+Y = house_prices_df.saleprice
+'''
+
+'''
+X = sm.add_constant(X)
+
+results = sm.OLS(Y, X).fit()
+
+X_train, X_test, y_train, y_test = train_test_split(X, Y, test_size = 0.2,
+                                                    random_state = 465)
+
+# We add constant to the model as it's a best practice
+# to do so every time!
+X_train = sm.add_constant(X_train)
+
+# We fit an OLS model using statsmodels
+results = sm.OLS(y_train, X_train).fit()
+
+# We print the summary results
+print(results.summary())
+
+'''
+Q 1: THe fit is relatively good. openporchsf, garagearea, totalbsmtsf, street_Pave
+are insignificant. adjusted R-squared is .766, which means it is a relatively good
+model.
+'''
+
+# We add constant to the model as it's a best practice
+# to do so every time!
+X_test = sm.add_constant(X_test)
+
+# We are making predictions here
+y_preds = results.predict(X_test)
+
+plt.scatter(y_test, y_preds)
+plt.plot(y_test, y_test, color="red")
+plt.xlabel("true values")
+plt.ylabel("predicted values")
+plt.title("Charges: true and predicted values")
+plt.show()
+
+print("Mean absolute error of the prediction is: {}".format(mean_absolute_error(y_test, y_preds)))
+print("Mean squared error of the prediction is: {}".format(mse(y_test, y_preds)))
+print("Root mean squared error of the prediction is: {}".format(rmse(y_test, y_preds)))
+print("Mean absolute percentage error of the prediction is: {}".format(np.mean(np.abs((y_test - y_preds) / y_test)) * 100))
+
+
+
+
+
+
+
+
+
