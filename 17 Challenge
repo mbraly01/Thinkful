@@ -8,6 +8,7 @@ from scipy.stats.mstats import winsorize
 from sklearn.preprocessing import StandardScaler
 from sklearn.decomposition import PCA
 from sqlalchemy import create_engine
+import missingno as msno
 import warnings
 
 warnings.filterwarnings('ignore')
@@ -25,41 +26,179 @@ engine = create_engine('postgresql://{}:{}@{}:{}/{}'.format(
 life_df = pd.read_sql_query(
     'select * from lifeexpectancy',con=engine)
 engine.dispose()
-print(life_df.info())
 
-for i in life_df:
-    if i != 'Country' and i != 'Status':
-        #print(life_df[i].head())
-        life_df[i].fillna(life_df[i].mean(), inplace=True)
-        life_df[i] = winsorize(life_df[i], (0, 0.10))
+cols = life_df.columns
+
+numeric_cols = [x for x in cols if x not in ('Country','Year','Status')]
 
 #There weren't that many missing values, so instead of dropping the entries, I filled
 #them with the mean
 #I winsorized the values with high outliers, since I wanted to make sure the outliers
 #didin't have an outsized impact on my data
 
+#Univariate analysis:
 
-#The variables with the highest correlation to life expectancy were Schooling,
-        #Income composition of resources
-        #HIV/AIDS
-        #Adult mortality
-print(life_df.corr())
-print(life_df.columns.tolist())
+life_var = []
+print(life_df.info())
+for i in life_df:
+    life_var.append(i)
 
-plt.subplot(2,2,1)
-plt.hist(life_df["Schooling"])
-plt.title("Schooling")
+print(life_df.isnull().sum())
 
-plt.subplot(2,2,2)
-plt.hist(life_df["Income composition of resources"])
-plt.title("Income composition of resources")
+#The data is missing not at random. Data that is collected by developed countries
+#through robust data collection processes like the census are missing from
+#this dataset. This leads me to belive that in less developed countries who dont
+#have these sorts of data collection mechanism are the ones missing the data
 
-sns.lmplot(y='Life expectancy',x='Income composition of resources', data=life_df,
-           fit_reg=True, scatter_kws={'alpha':-.4})
+#There are 22 variables
+#There are 64636 datapoints
+#Categorical variables: Country, Year, Status, Schooling
+#Continous variables: Life expectancy, Adult Mortality, Infant Deaths, Alchohol,
+#Percentage expenditure, Hepatitus B, Measles, Under five deaths, Polio, Total expenditure
+#Diptheria, HIV/AIDS, GDP, Population, Thinness 1-19 years, thinness 5-9 years,
+#income composition of resources, BMI
+
+for i in life_df:
+    if i != 'Country' and i != 'Status':
+        life_df[i].fillna(life_df[i].mean(), inplace=True)
+        
+        plt.boxplot(life_df[i])
+        plt.title("boxplot of {}".format(i))
+        plt.show()
+        
+#The following variables had the most ergregious outliers and should be winsorized
+for i in life_df:
+    if i in ['infant deaths','percentage expenditure','Hepatitus B','Measles',
+             'under-five deaths','Polio','Dyptheria','HIV/AIDS','GDP','Population']:
+        life_df[i] = winsorize(life_df[i], (0, 0.10))
+    
+
+#Data missing:
+#There weren't that many missing values, so instead of dropping the entries, I filled
+#them with the mean
+#I winsorized the values with high outliers, since I wanted to make sure the outliers
+#didin't have an outsized impact on my data
+
+#Univariate Visualization:
+# histograms of all variables except for Country
+
+
+for i in life_df:
+    if i != 'Country':
+        plt.hist(life_df[i])
+        plt.title("hist of {}".format(i))
+        plt.show()
+
+#Probability distributions:
+#Normal distributions - total expenditure
+
+print(life_df.describe())
+
+for i in life_df:
+    if i != 'Country' and i != 'Status'and i != 'Year':
+        print(i)
+        print(life_df[i].mean())
+        print(life_df[i].median())
+
+        print(life_df[i].mode())
+
+#above, you can access the central tendencies of each variable
+
+for i in life_df:
+    if i != 'Country' and i != 'Status'and i != 'Year':
+        print(i)
+        print(life_df[i].var())
+
+#above, you can access the variance in each variable
+
+#Bivariate analysis:
+
+sns.heatmap(life_df.corr(), square=True, annot=True, linewidths=.5)
+plt.title("correlation matrix")
+plt.show()
+#The highest correlations with life expectancy seem to be Schooling, Income composition
+#of resources, and BMI
+
+#Bivariate vizualization
+g = sns.lmplot(y='Life expectancy ', x='Schooling', data=life_df, fit_reg=True,
+               scatter_kws={'alpha':0.4})
+g.set_ylabels("Life expectancy")
+g.set_xlabels("Schooling")
+plt.title('Scatterplot with regression line: Life expectancy by schooling')
 plt.show()
 
-#Findings: Life expectancy is heavily correlated to income, schooling, and is inversely
-#correlated to HIV/AIDS and Adult mortality. A feature to add would be annual income,
-#total net worth, and level of medical care. These would help us identify what level
-#of medical care and what net worth is necessary for preventing child mortality
+g = sns.lmplot(y='Life expectancy ',
+                x='Income composition of resources',
+                data=life_df, fit_reg=True,
+               scatter_kws={'alpha':0.4})
+g.set_ylabels("Life expectancy")
+g.set_xlabels("Income composition of resources")
+plt.title(
+    'Scatterplot with regression line: Life expectancy by Income composition of resources')
+plt.show()
+
+g = sns.lmplot(y='Life expectancy ',
+                x=life_var[10],
+                data=life_df, fit_reg=True,
+               scatter_kws={'alpha':0.4})
+g.set_ylabels("Life expectancy")
+g.set_xlabels("BMI")
+plt.title('Scatterplot with regression line: Life expectancy by BMI')
+plt.show()
+
+g = sns.lmplot(y='Life expectancy ',
+                x='Adult Mortality',
+                data=life_df, fit_reg=True,
+               scatter_kws={'alpha':0.4})
+g.set_ylabels("Life expectancy")
+g.set_xlabels("Adult mortality")
+plt.title('Scatterplot with regression line: Life expectancy by Adult Mortality')
+plt.show()
+
+g = sns.lmplot(y='Life expectancy ',
+                x=life_var[15],
+                data=life_df, fit_reg=True,
+               scatter_kws={'alpha':0.4})
+g.set_ylabels("Life expectancy")
+g.set_xlabels(" HIV/AIDS")
+plt.title('Scatterplot with regression line: Life expectancy by HVI/AIDS')
+plt.show()
+
+g = sns.lmplot(y='Life expectancy ',
+                x='infant deaths',
+                data=life_df, fit_reg=True,
+               scatter_kws={'alpha':0.4})
+g.set_ylabels("Life expectancy")
+g.set_xlabels("infant deaths")
+plt.title('Scatterplot with regression line: Life expectancy by infant deaths')
+plt.show()
+
+g = sns.lmplot(y='Life expectancy ',
+                x='GDP',
+                data=life_df, fit_reg=True,
+               scatter_kws={'alpha':0.4})
+g.set_ylabels("Life expectancy")
+g.set_xlabels("GDP")
+plt.title('Scatterplot with regression line: Life expectancy by GDP')
+plt.show()
+
+
+
+
+
+#After looking at the multivariate analysis, as well as the correlations,
+#I would remove everything that isn't the following: Adult mortality, HIV/AIDS, schooling
+#income composition of resources, BMI, Infant deaths, GDP. These are the variables
+#with the highest absolute values of correlations with life expectancy. Some variables
+#such as thinness are different ways of talking about BMI so they have been dropped
+
+
+#Summary
+#people who live in richer countries, with a more robust healthcare and schooling system
+#are more likely to live longer lives. Countries with high Adult mortality, infant deaths, and HIV/AIDS
+#diagnoses are all highly correlated to low life expectancies. Schooling, a countries
+#GDP, income composition of resources, and BMI are all linked to higher life expectancies
+#Within that country. Part of the high BMIs and high schooling may have to do with
+#providing students food who cannot afford food in wealthier countries, leading to higher
+#BMIs and life expectancies
 
