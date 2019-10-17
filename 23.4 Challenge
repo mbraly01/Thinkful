@@ -1,0 +1,38 @@
+Regression
+
+Similiarity models
+Random Forest models
+Support Vector machines
+Boosting models
+
+Predict the running times of prospective Olympic sprinters using data from the last 20 Olympics.
+1. regression KNN - using existing data to predict future data. Predictiong a continous data (random trees)
+
+You have more features (columns) than rows in your dataset.
+2.Support vector machines and the kernal trick. It helps to minimmize dimensionality
+
+Identify the most important characteristic predicting likelihood of being jailed before age 20.
+3. random forest models logistic regression model gradient bossint - you are looking for data that is like other data, getting a metric to boost coefficient 
+
+Implement a filter to “highlight” emails that might be important to the recipient
+4. Decision trees, KNN, Naive Bayes classifier - looking for charactersitics that are similar
+
+You have 1000+ features.
+5. Random Forest model - minimizing the complexity by randomly selecting groups. You can notive which trees helped the purity 
+of the Principal Component Analysis
+
+Predict whether someone who adds items to their cart on a website will purchase the items.
+6. Classifier  Naive Bayes - are they going to purchase items depending on items that they have in they cart 
+
+Your dataset dimensions are 982400 x 500
+7.Support Vector Machine  (PCA or Random Forest)-  wanting to simplify the different features
+
+Identify faces in an image.
+8. KNN (the is a classifier) or Random Forest 
+
+Predict which of three flavors of ice cream will be most popular with boys vs girls.
+9. Classifier, Naive Bayes  - Relies heavily on conditional probabilities
+
+Linear techniques
+Probabilisitc technics,
+Non-linear - Gradient
