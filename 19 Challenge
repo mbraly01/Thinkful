@@ -7,6 +7,7 @@ from sklearn.metrics import mean_absolute_error
 from statsmodels.tools.eval_measures import mse, rmse
 from sqlalchemy import create_engine
 from sklearn.model_selection import KFold
+from sklearn.model_selection import cross_val_score
 
 
 pd.options.display.float_format = '{:.3f}'.format
@@ -27,7 +28,12 @@ engine = create_engine('postgresql://{}:{}@{}:{}/{}'.format(
 houseprices_df = pd.read_sql_query('select * from houseprices',con=engine)
 
 # no need for an open connection, as we're only doing a single query
+
+
 engine.dispose()
+pd.set_option('display.max_columns', None)
+pd.set_option('display.max_rows', None)
+print(houseprices_df.info())
 
 # Y is the target variable
 Y = houseprices_df['saleprice']
@@ -64,6 +70,9 @@ print("Mean squared error of the prediction is: {}".format(mse(y_test, y_preds_t
 print("Root mean squared error of the prediction is: {}".format(rmse(y_test, y_preds_test)))
 print("Mean absolute percentage error of the prediction is: {}".format(np.mean(np.abs((y_test - y_preds_test) / y_test)) * 100))
 
+print("LRM Cross Val ", cross_val_score(lrm, X, Y, cv=10))
+print("\n")
+
 from sklearn.linear_model import Ridge
 
 # Fitting a ridge regression model. Alpha is the regularization
@@ -84,6 +93,10 @@ print("Mean squared error of the prediction is: {}".format(mse(y_test, y_preds_t
 print("Root mean squared error of the prediction is: {}".format(rmse(y_test, y_preds_test)))
 print("Mean absolute percentage error of the prediction is: {}".format(np.mean(np.abs((y_test - y_preds_test) / y_test)) * 100))
 
+print("Ridge Cross Val ",cross_val_score(ridgeregr, X, Y, cv=10))
+print("\n")
+
+
 from sklearn.linear_model import Lasso
 
 lassoregr = Lasso(alpha=10**20.5) 
@@ -101,6 +114,9 @@ print("Mean squared error of the prediction is: {}".format(mse(y_test, y_preds_t
 print("Root mean squared error of the prediction is: {}".format(rmse(y_test, y_preds_test)))
 print("Mean absolute percentage error of the prediction is: {}".format(np.mean(np.abs((y_test - y_preds_test) / y_test)) * 100))
 
+print("Lasso Cross Val ",cross_val_score(lassoregr, X, Y, cv=10))
+print("\n")
+
 from sklearn.linear_model import ElasticNet
 
 elasticregr = ElasticNet(alpha=10**21, l1_ratio=0.5) 
@@ -117,6 +133,21 @@ print("Mean absolute error of the prediction is: {}".format(mean_absolute_error(
 print("Mean squared error of the prediction is: {}".format(mse(y_test, y_preds_test)))
 print("Root mean squared error of the prediction is: {}".format(rmse(y_test, y_preds_test)))
 print("Mean absolute percentage error of the prediction is: {}".format(np.mean(np.abs((y_test - y_preds_test) / y_test)) * 100))
+
+print("ElasticNet Cross Val",cross_val_score(elasticregr, X, Y, cv=10))
+
+#the Lasso model seemed to perform best with cross validation
+
+#some additional features might be:
+#is it near construction site/heavy traffic area,
+#is it near airport
+#is it haunted
+#is it in a floodplain
+
+#adding these additional features would be the most disruptive variables, as they are
+#not objectively bad or good. Someone who has to commute a lot might need an airport
+#or might need to live next to a highway
+
 
 
 
