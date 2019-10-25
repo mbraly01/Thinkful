@@ -29,7 +29,7 @@ houseprices_df = pd.read_sql_query('select * from houseprices',con=engine)
 
 # no need for an open connection, as we're only doing a single query
 
-
+houseprices_df.rename(columns={'yrsold': 'Year'}, inplace=True)
 engine.dispose()
 pd.set_option('display.max_columns', None)
 pd.set_option('display.max_rows', None)
@@ -138,16 +138,126 @@ print("ElasticNet Cross Val",cross_val_score(elasticregr, X, Y, cv=10))
 
 #the Lasso model seemed to perform best with cross validation
 
-#some additional features might be:
-#is it near construction site/heavy traffic area,
-#is it near airport
-#is it haunted
-#is it in a floodplain
+#I am using video games sales as a metric to see salesprices
+#each house has a salesyear, and each recent year has a number of video
+#games sol. An increase in video games sold and salesprice could show that in
+#times where people have more expendable income, they are willing to spend more
+#of it on houses
 
-#adding these additional features would be the most disruptive variables, as they are
-#not objectively bad or good. Someone who has to commute a lot might need an airport
-#or might need to live next to a highway
+df = pd.read_csv('vgsales.csv')
 
+df = df.dropna()
+df = df[["Year", "NA_Sales"]]
+df.Year = df.Year.astype(int)
+df2 = df.groupby([df['Year']]).sum()
+
+houseprices_df.merge(df2, on='Year')
+
+numerical_cols = [col_name for col_name in houseprices_df.dtypes[houseprices_df.dtypes.values == 'int64'].index 
+                    if col_name not in ["id", "saleprice"] ]
+
+print('updated sets')
+print('updated sets')
+print('updated sets')
+
+X = houseprices_df[numerical_cols]
+
+X = pd.concat([X**i for i in range(1,21)], axis=1)
+
+# X is the feature set
+
+
+X_train, X_test, y_train, y_test = train_test_split(X, Y, test_size = 0.2, random_state = 465)
+
+
+print("The number of observations in training set is {}".format(X_train.shape[0]))
+print("The number of observations in test set is {}".format(X_test.shape[0]))
+
+# We fit an OLS model using sklearn
+lrm = LinearRegression()
+lrm.fit(X_train, y_train)
+
+
+# We are making predictions here
+y_preds_train = lrm.predict(X_train)
+y_preds_test = lrm.predict(X_test)
+
+print("R-squared of the OLS model in the training set is: {}".format(lrm.score(X_train, y_train)))
+print("-----Test set statistics-----")
+print("R-squared of the model in the test set is: {}".format(lrm.score(X_test, y_test)))
+print("Mean absolute error of the prediction is: {}".format(mean_absolute_error(y_test, y_preds_test)))
+print("Mean squared error of the prediction is: {}".format(mse(y_test, y_preds_test)))
+print("Root mean squared error of the prediction is: {}".format(rmse(y_test, y_preds_test)))
+print("Mean absolute percentage error of the prediction is: {}".format(np.mean(np.abs((y_test - y_preds_test) / y_test)) * 100))
+
+print("LRM Cross Val ", cross_val_score(lrm, X, Y, cv=10))
+print("\n")
+
+from sklearn.linear_model import Ridge
+
+# Fitting a ridge regression model. Alpha is the regularization
+# parameter (usually called lambda). As alpha gets larger, parameter
+# shrinkage grows more pronounced.
+ridgeregr = Ridge(alpha=10**37) 
+ridgeregr.fit(X_train, y_train)
+
+# We are making predictions here
+y_preds_train = ridgeregr.predict(X_train)
+y_preds_test = ridgeregr.predict(X_test)
+
+print("R-squared of the Ridge model on the training set is: {}".format(ridgeregr.score(X_train, y_train)))
+print("-----Test set statistics-----")
+print("R-squared of the model on the test set is: {}".format(ridgeregr.score(X_test, y_test)))
+print("Mean absolute error of the prediction is: {}".format(mean_absolute_error(y_test, y_preds_test)))
+print("Mean squared error of the prediction is: {}".format(mse(y_test, y_preds_test)))
+print("Root mean squared error of the prediction is: {}".format(rmse(y_test, y_preds_test)))
+print("Mean absolute percentage error of the prediction is: {}".format(np.mean(np.abs((y_test - y_preds_test) / y_test)) * 100))
+
+print("Ridge Cross Val ",cross_val_score(ridgeregr, X, Y, cv=10))
+print("\n")
+
+
+from sklearn.linear_model import Lasso
+
+lassoregr = Lasso(alpha=10**20.5) 
+lassoregr.fit(X_train, y_train)
+
+# We are making predictions here
+y_preds_train = lassoregr.predict(X_train)
+y_preds_test = lassoregr.predict(X_test)
+
+print("R-squared of the Lasso model on the training set is: {}".format(lassoregr.score(X_train, y_train)))
+print("-----Test set statistics-----")
+print("R-squared of the model on the test set is: {}".format(lassoregr.score(X_test, y_test)))
+print("Mean absolute error of the prediction is: {}".format(mean_absolute_error(y_test, y_preds_test)))
+print("Mean squared error of the prediction is: {}".format(mse(y_test, y_preds_test)))
+print("Root mean squared error of the prediction is: {}".format(rmse(y_test, y_preds_test)))
+print("Mean absolute percentage error of the prediction is: {}".format(np.mean(np.abs((y_test - y_preds_test) / y_test)) * 100))
+
+print("Lasso Cross Val ",cross_val_score(lassoregr, X, Y, cv=10))
+print("\n")
+
+from sklearn.linear_model import ElasticNet
+
+elasticregr = ElasticNet(alpha=10**21, l1_ratio=0.5) 
+elasticregr.fit(X_train, y_train)
+
+# We are making predictions here
+y_preds_train = elasticregr.predict(X_train)
+y_preds_test = elasticregr.predict(X_test)
+
+print("R-squared of the ElasticNet model on the training set is: {}".format(elasticregr.score(X_train, y_train)))
+print("-----Test set statistics-----")
+print("R-squared of the model on the test set is: {}".format(elasticregr.score(X_test, y_test)))
+print("Mean absolute error of the prediction is: {}".format(mean_absolute_error(y_test, y_preds_test)))
+print("Mean squared error of the prediction is: {}".format(mse(y_test, y_preds_test)))
+print("Root mean squared error of the prediction is: {}".format(rmse(y_test, y_preds_test)))
+print("Mean absolute percentage error of the prediction is: {}".format(np.mean(np.abs((y_test - y_preds_test) / y_test)) * 100))
+
+print("ElasticNet Cross Val",cross_val_score(elasticregr, X, Y, cv=10))
+
+#The video game sales as a metric does not seem to have had any effect on the
+#sales of a house
 
 
 
