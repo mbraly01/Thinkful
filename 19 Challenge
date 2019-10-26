@@ -4,6 +4,7 @@ import pandas as pd
 from sklearn.linear_model import LinearRegression
 from sklearn.model_selection import train_test_split
 from sklearn.metrics import mean_absolute_error
+from scipy.stats.mstats import winsorize
 from statsmodels.tools.eval_measures import mse, rmse
 from sqlalchemy import create_engine
 from sklearn.model_selection import KFold
@@ -34,6 +35,28 @@ engine.dispose()
 pd.set_option('display.max_columns', None)
 pd.set_option('display.max_rows', None)
 print(houseprices_df.info())
+print(houseprices_df.isnull().sum())
+print(houseprices_df.corr())
+#dropping highly correlated features
+houseprices_df.drop(['overallqual','grlivarea'], 1)
+
+#dropping columns with too many outliers
+for i in houseprices_df:
+    if houseprices_df[i].isnull().sum() > 1000:
+        houseprices_df.drop(i, 1)
+
+#filling null values
+for i in houseprices_df:
+    for j in range(1, len(houseprices_df[i])):
+        if pd.isnull(houseprices_df[i][j]):
+            houseprices_df[i][j] = houseprices_df[i][j-1]
+
+#winsorizing where acceptable
+for i in houseprices_df:
+    if houseprices_df[i].dtype == np.float64 or houseprices_df[i].dtype == np.int64:
+        winsorize(houseprices_df[i], (0, 0.10))
+
+houseprices_df = houseprices_df.dropna()
 
 # Y is the target variable
 Y = houseprices_df['saleprice']
@@ -258,6 +281,7 @@ print("ElasticNet Cross Val",cross_val_score(elasticregr, X, Y, cv=10))
 
 #The video game sales as a metric does not seem to have had any effect on the
 #sales of a house
+
 
 
 
