@@ -1,0 +1,60 @@
+import numpy as np
+import pandas as pd
+import matplotlib.pyplot as plt
+from sklearn.preprocessing import StandardScaler
+from sklearn.cluster import KMeans, MiniBatchKMeans
+from sklearn.decomposition import PCA
+from sklearn import datasets
+from statsmodels.tools.eval_measures import mse, rmse
+from sqlalchemy import create_engine
+
+
+
+postgres_user = 'dsbc_student'
+postgres_pw = '7*.8G9QH21'
+postgres_host = '142.93.121.174'
+postgres_port = '5432'
+postgres_db = 'heartdisease'
+
+engine = create_engine('postgresql://{}:{}@{}:{}/{}'.format(
+    postgres_user, postgres_pw, postgres_host, postgres_port, postgres_db))
+
+heartdisease_df = pd.read_sql_query('select * from heartdisease',con=engine)
+
+
+# Define the features and the outcome
+X = heartdisease_df.iloc[:, :13]
+y = heartdisease_df.iloc[:, 13]
+
+# Replace missing values (marked by ?) with a 0
+X = X.replace(to_replace='?', value=0)
+
+# Binarize y so that 1 means heart disease diagnosis and 0 means no diagnosis
+y = np.where(y > 0, 0, 1)
+
+# Standarizing the features
+scaler = StandardScaler()
+X_std = scaler.fit_transform(X)
+
+#we use thress clusters for the three types of iris
+# Defining the k-means
+kmeans_cluster = KMeans(n_clusters=2, random_state=123)
+
+# Fit model
+kmeans_cluster.fit(X_std)
+y_pred = kmeans_cluster.predict(X_std)
+
+pca = PCA(n_components=2).fit_transform(X_std)
+
+plt.figure(figsize=(10,5))
+colours = 'rbg'
+for i in range(pca.shape[0]):
+    plt.text(pca[i, 0], pca[i, 1], str(y_pred[i]),
+             color=colours[y[i]],
+             fontdict={'weight': 'bold', 'size': 50}
+        )
+
+plt.xticks([])
+plt.yticks([])
+plt.axis('off')
+plt.show()
