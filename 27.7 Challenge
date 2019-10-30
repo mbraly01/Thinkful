@@ -1,0 +1,86 @@
+'''
+27.7 notes - Dimensionality reduction with PCA
+
+We need dimensionality reduction for 2 reasons
+
+1. Visualization - we can only really sea in 3 dimensions, so dimensionality reducation
+helps us understand better
+
+2. curse of dimensionality - the more dimensions a dataset has, the harder it is to
+process the data and the more confused the outcomes are
+
+PCA finds low-dimensionality representation of the high dimensional data by retaining
+as much variation in the data as possible
+
+the representation produced by PCA are called principal components
+
+PCA searches for a line (or vector)such that the perpendicular projections of the
+data points have maximum variance
+
+***PCA Algorithm***
+
+1. PCA calculates the covariance matrix of the variables that we want to transform
+2. It calculates the eigenvectors and eigenvalues of the covariance matrix calculated
+in the previous step
+3. It sorts the eigenvectors with respect to their corresponding eigenvalues such that
+the eigenvector with the highest eigenvalue comes first , the eigenvector with the
+second highest eigenvalue comes next, etc., etc.
+
+The principal components are linear combinations of the original variables. Hence PCA
+is a linear dimensionality reduction technique
+
+PCA preserves the global structure of the similarity in the data. Far away observations
+in the original dimensiosn are far away in the lower dimensional PCA version
+
+For every variable, we need to calculate the mean, and subtract the mean from our variables
+We need to standardize our variables, so some variables with high numbers aren't throwing
+off variables with low numbers
+
+'''
+import numpy as np
+import matplotlib.pyplot as plt
+from sklearn.datasets import fetch_openml
+from sklearn.decomposition import PCA
+import sklearn
+sklearn.__version__
+
+# We load the MNIST dataset below
+mnist = fetch_openml('Fashion-MNIST', version=1, cache=True)
+
+np.random.seed(123)
+
+indices = np.random.choice(70000,10000)
+X = mnist.data[indices] / 255.0
+y = mnist.target[indices]
+
+print(X.shape, y.shape)
+
+# We just want the first two principal components
+pca = PCA(n_components=2)
+
+# We get the components by 
+# calling fit_transform method with our data
+pca_components = pca.fit_transform(X)
+plt.figure(figsize=(10,5))
+colours = ["r","b","g","c","m","y","k","r","burlywood","chartreuse"]
+for i in range(pca_components.shape[0]):
+    plt.text(pca_components[i, 0], pca_components[i, 1], str(y[i]),
+             color=colours[int(y[i])],
+             fontdict={'weight': 'bold', 'size': 50}
+        )
+
+plt.xticks([])
+plt.yticks([])
+plt.axis('off')
+plt.show()
+
+#this graph shows the two dimensional representations of the ten digits in the dataset
+#the zeros and ones represent the right and left most edges (because they are the most
+#different
+
+plt.figure(figsize=(10,5))
+plt.scatter(pca_components[:, 0], pca_components[:, 1])
+plt.xticks([])
+plt.yticks([])
+plt.axis('off')
+plt.show()
