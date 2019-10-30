@@ -1,0 +1,104 @@
+# -*- coding: utf-8 -*-
+"""
+Created on Sat Oct 12 09:21:26 2019
+
+@author: Matt
+"""
+
+import numpy as np
+import pandas as pd
+import scipy
+import matplotlib.pyplot as plt
+import seaborn as sns
+from sklearn.model_selection import cross_val_score
+from sklearn.svm import SVR
+
+'''
+We are looking to see if we can use a keyword list to predict
+the rating of each recipe in the data set
+'''
+raw_data = pd.read_csv('epi_r.csv')
+
+#this gets the columns
+'''
+#gets central tendancies
+print(raw_data.rating.describe())
+
+#the mean and the 25the percentile are very close, meaning a lot
+#of bad reviews are dragging the total reivews down
+
+raw_data.rating.hist(bins=20)
+plt.title('Histogram of Recipe Ratings')
+plt.show()
+
+# Count nulls 
+null_count = raw_data.isnull().sum()
+null_count[null_count>0]
+
+#nutritional information is not available for all goods
+
+
+svr = SVR()
+X = raw_data.drop(['rating', 'title', 'calories', 
+                   'protein', 'fat', 'sodium'],1).sample(frac=0.3, replace=True,
+                            random_state=1)
+Y = raw_data.rating.sample(frac=0.3, replace=True,
+                           random_state=1)
+svr.fit(X,Y)
+
+plt.scatter(Y, svr.predict(X))
+plt.show()
+#this visualization is useless because of the dicontinuous 
+#nature of our outcome variable
+print(svr.score(X, Y))
+
+
+cross_val_score(svr, X, Y, cv=5)
+
+#this should be a classifier
+'''
+'''
+#print(raw_data.protein.head())
+#print(raw_data.turnip.head())
+#There are no strings in this dataset
+np.set_printoptions(threshold=False)
+
+sorted_list = raw_data[raw_data.columns[1:]].corr()['rating'][:]
+sorted_list = sorted_list.sort_values()
+print(sorted_list)
+corr_list = ['bake', 'roast', 'fall', 'dinner','kosher']
+'''
+from sklearn.svm import SVC
+
+# Instantiate our model and fit the data.
+rdrating = raw_data['rating'].as_matrix()
+print('works')
+X = np.reshape(rdrating,(20052,1))
+print('works')
+Y = raw_data[['bake']]
+
+#don't know how to add more features
+svm = SVC(kernel = 'linear')
+
+print(svm.fit(X, Y))
+
+# Visualize our model
+y_min, y_max = 0,1
+x_min, x_max = 0,5
+xx, yy = np.meshgrid(np.arange(x_min, x_max, .1),
+                     np.arange(y_min, y_max, .1))
+
+Z = (svm.predict(np.c_[xx.ravel(), yy.ravel()])=='pass')
+Z = Z.reshape(xx.shape)
+plt.contourf(xx, yy, Z, cmap=plt.cm.coolwarm, alpha=0.8)
+plt.scatter(raw_data.bake, marker='x')
+plt.scatter(raw_data.roast, marker='o')
+plt.scatter(raw_data.fall, marker='o')
+plt.scatter(raw_data.dinner, marker='o')
+plt.scatter(raw_data.kosher, marker='o')
+plt.xlim(x_min, x_max)
+plt.ylim(y_min, y_max)
+plt.xlabel('Project Grade')
+plt.ylabel('Test Grade')
+plt.title('Passing Grades SVM Example')
+plt.show()
