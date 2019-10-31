@@ -1,0 +1,47 @@
+import numpy as np
+import matplotlib.pyplot as plt
+import time
+from sklearn.datasets import fetch_openml
+from sklearn.decomposition import PCA
+from sklearn.manifold import TSNE
+%matplotlib qt
+%matplotlib inline
+
+mnist = mnist = fetch_openml('mnist_784', version=1, cache=True)
+
+np.random.seed(123)
+
+indices = np.random.choice(70000,10000)
+X = mnist.data[indices] / 255.0
+y = mnist.target[indices]
+
+print(X.shape, y.shape)
+
+time_start = time.time()
+tsne = TSNE(n_components=2, verbose=1, perplexity=10, n_iter=300)
+tsne_results = tsne.fit_transform(X)
+
+print('t-SNE done! Time elapsed: {} seconds'.format(time.time()-time_start))
+
+plt.figure(figsize=(10,5))
+colours = ["r","b","g","c","m","y","k","r","burlywood","chartreuse"]
+for i in range(tsne_results.shape[0]):
+    plt.text(tsne_results[i, 0], tsne_results[i, 1], str(y[i]),
+             color=colours[int(y[i])],
+             fontdict={'weight': 'bold', 'size': 50}
+        )
+
+plt.xticks([])
+plt.yticks([])
+plt.axis('off')
+plt.show()
+
+plt.figure(figsize=(10,5))
+plt.scatter(tsne_results[:, 0], tsne_results[:, 1])
+plt.xticks([])
+plt.yticks([])
+plt.axis('off')
+plt.show()
+
+#t-sne has clearer deliniations in its groups
+#the lower perplexity seems to have made no difference
